@@ -1,0 +1,27 @@
+from bs4 import BeautifulSoup
+
+HTML_CONTOH = """<!doctype html><html lang="id">  <head><title>Toko Buku Data</title></head>  <body>    <h1>Buku Pilihan</h1>    <section id="katalog">      <article class="buku unggulan" data-id="B001">        <h2 class="judul">Dasar Data Mining</h2>        <p class="harga">Rp125.000</p>        <p class="stok">Tersedia</p>        <a href="/buku/dasar-data-mining">Detail</a>      </article>      <article class="buku" data-id="B002">        <h2 class="judul">Python untuk Analisis Data</h2>        <p class="harga">Rp149.500</p>        <p class="stok habis">Habis</p>        <a href="/buku/python-analisis">Detail</a>      </article>      <article class="buku" data-id="B003">        <h2 class="judul">Statistika Praktis</h2>        <p class="harga">Rp98.000</p>        <!-- Elemen stok sengaja tidak tersedia -->        <a href="/buku/statistika-praktis">Detail</a>      </article>    </section>  </body></html>"""
+
+soup = BeautifulSoup(HTML_CONTOH, 'html.parser')
+
+buku_tersedia = [
+    article.find('h2', class_='judul').text
+    for article in soup.find_all('article', class_='buku')
+    if article.find('p', class_='stok') and article.find('p', class_='stok').text.strip() == 'Tersedia'
+]
+print("1. Buku yang Tersedia:", buku_tersedia)
+
+harga_elements = soup.find_all('p', class_='harga')
+harga_integer = [int(p.text.replace('Rp', '').replace('.', '')) for p in harga_elements]
+rata_rata_harga = sum(harga_integer) / len(harga_integer)
+print(f"2. Rata-rata Harga: Rp{rata_rata_harga:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'))
+
+data_ids = [elemen['data-id'] for elemen in soup.select('[data-id]')]
+print("3. Data ID Buku:", data_ids)
+ekstraksi_stok = []
+for article in soup.find_all('article', class_='buku'):
+    stok_elemen = article.find('p', class_='stok')
+    status = stok_elemen.text.strip() if stok_elemen else "Tidak diketahui"
+    ekstraksi_stok.append(status)
+    
+print("4. Status Stok Seluruh Buku:", ekstraksi_stok)
